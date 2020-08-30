@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RootNamespace>AvaloniaAppTemplate</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <AvaloniaResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <AvaloniaResource Update="Views\MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <Compile Update="Views\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <AvaloniaResource Update="Views\LearningView\LearnWindow.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <Compile Update="Views\LearningView\LearnWindow.cs">
+      <DependentUpon>LearnWindow.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.9.12" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Random" />
+  </ItemGroup>
+</Project>

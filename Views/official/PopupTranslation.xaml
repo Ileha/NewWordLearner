@@ -1,0 +1,26 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
+        CanResize="False"
+        SizeToContent="Height"
+        Width="250" Height="100" 
+        x:Class="NewWordLearner.Views.official.PopupTranslation"
+        Title="Word Translate">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="{Binding Heder}" Margin="10,10,10,0" Grid.Row="0" Grid.ColumnSpan="2" FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+        <TextBox Text="{Binding Word, Mode=TwoWay}" FontSize="14" Margin="10,5,10,5" TextWrapping="Wrap" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button Command="{Binding Ok}" Content="OK" FontSize="14" Margin="10,5,10,5" Grid.Row="2"/>
+        <Button Command="{Binding Cancel}" Content="Cancel" FontSize="14" Margin="10,5,10,5" Grid.Row="2" Grid.Column="1"/>
+    </Grid>
+</Window>

@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+        Width="250" Height="350"
+        x:Class="NewWordLearner.Views.MainWindow"
+        Title="Word Learner">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="25*"/>
+            <ColumnDefinition Width="34*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="144"/>
+            <RowDefinition Height="10*"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Text="name" Margin="10,10,10,0" VerticalAlignment="Top" Height="26"/>
+        <TextBox Name="title" Height="23" Margin="10,14,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Grid.Column="1"/>
+        <TextBlock Text="Target language" VerticalAlignment="Top" Height="26" Margin="10,72,10,0"></TextBlock>
+        <TextBlock Text="Your language" Margin="10,41,10,0" VerticalAlignment="Top" Height="26"></TextBlock>
+        <ComboBox Name="yourLanguage" Margin="10,45,10,0" Height="22" VerticalAlignment="Top" Grid.Column="1"/>
+        <ComboBox Name="targetLanguage" Margin="10,76,10,0" Height="22" VerticalAlignment="Top" Grid.Column="1"/>
+        
+        <ScrollViewer Margin="10" Grid.Row="1" Grid.ColumnSpan="2">
+            <StackPanel Name="project">
+                
+            </StackPanel>
+        </ScrollViewer>
+        
+        <Button Name="button" Click="button_Click" Margin="10,0,10,10" Grid.Row="2" Grid.ColumnSpan="2">Create new</Button>
+    </Grid>
+</Window>

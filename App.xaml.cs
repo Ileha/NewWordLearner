@@ -72,7 +72,9 @@ namespace NewWordLearner
             }
             catch (Exception err) 
             {
-                res = new XDocument();
+                res = new XDocument(
+                    new XElement("config")
+                );
                 res.Save(ProjectConfig);
             }
         }

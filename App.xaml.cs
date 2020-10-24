@@ -11,6 +11,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NewWordLearner.Data;
+using NewWordLearner.ImageController.ImageProviders;
+using NewWordLearner.ImageController.ImageProviders.Instances;
+using NewWordLearner.ResourceProvider.SoundsController;
 using NewWordLearner.System;
 using NewWordLearner.Views;
 
@@ -23,7 +26,12 @@ namespace NewWordLearner
         public const String LanguagesPath = "./languages.xml";
         public const String ProjectExtention = ".dat";
         public const string ProjectsDataPath = "./data";
+        public const string ImageStorePath = "./Images";
+        public const string SoundStorePath = "./Sounds";
+        
         public Project Project { get; private set; }
+        public ImageController.ImageController ImageController { get; private set; }
+        public SoundsController SoundsController { get; private set; }
 
         public IEnumerable<Language> AllLanguages 
         { 
@@ -33,9 +41,11 @@ namespace NewWordLearner
             }
         }
 
+        // public KeyboardController KeyboardController { get; private set; }
+
         private Dictionary<string, Language> _languages = new Dictionary<string, Language>();
         private Regex _projectsFiles = new Regex($"(?<name>[^/]+){ProjectExtention}$");
-        
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -43,10 +53,25 @@ namespace NewWordLearner
         
         public override void OnFrameworkInitializationCompleted()
         {
+            // KeyboardController = new KeyboardController();
+            
             if (!Directory.Exists(ProjectsDataPath)) 
             {
                 Directory.CreateDirectory(ProjectsDataPath);
             }
+            
+            if (!Directory.Exists(ImageStorePath)) 
+            {
+                Directory.CreateDirectory(ImageStorePath);
+            }
+            
+            if (!Directory.Exists(SoundStorePath))
+            {
+                Directory.CreateDirectory(SoundStorePath);
+            }
+            
+            ImageController = new ImageController.ImageController(ImageStorePath, new IImageProvider.AgregatorImageProvider(new UnsplashImageProvider(), new GoogleImageProvider()));
+            SoundsController = new SoundsController(SoundStorePath, new GoogleSoundProvider());
             
             XDocument xLang = LoadLanguages();
 
@@ -167,7 +192,7 @@ namespace NewWordLearner
         }
         
         #endregion
-        
+
         private XDocument LoadLanguages() 
         {
             XDocument res = null;

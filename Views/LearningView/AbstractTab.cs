@@ -2,11 +2,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
 using DynamicData;
 using NewWordLearner.Data;
+using NewWordLearner.ResourceProvider.SoundsController;
 using NewWordLearner.System;
 using NewWordLearner.Views.official;
 using ReactiveUI;
@@ -29,7 +31,7 @@ namespace NewWordLearner.Views
     {
         #region Data
 
-        public string _word = String.Empty;
+        private string _word = String.Empty;
         public string Word
         {
             get => _word; 
@@ -42,20 +44,49 @@ namespace NewWordLearner.Views
             protected set => this.RaiseAndSetIfChanged(ref _options, value);
         }
 
-        public ReactiveCommand<Unit, Task> _cancel = default;
+        private ReactiveCommand<Unit, Task> _cancel = default;
         public ReactiveCommand<Unit, Task> Cancel
         {
             get => _cancel;
             protected set =>  this.RaiseAndSetIfChanged(ref _cancel, value);
         }
         
-        #endregion
         
+        
+        private bool _muted = true;
+        public bool Muted
+        {
+            get => _muted; 
+            protected set => this.RaiseAndSetIfChanged(ref _muted, value);
+        }
+
+        private IBitmap _imagePath = default;
+        public IBitmap ImagePath
+        {
+            get => _imagePath; 
+            protected set => this.RaiseAndSetIfChanged(ref _imagePath, value);
+        }
+        
+        #endregion
+
         private int _wordCount = -1;
         protected abstract TabItem OriginalTab { get; }
         protected abstract int CurrentProjectWordCount { get; }
 
-        protected void DisableAllButtons()
+        protected async void ApplyImage(Task<IBitmap> imageLoader)
+        {
+            try
+            {
+                ImagePath = default;
+                ImagePath = await imageLoader;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"something bad occured in image loading\n{e}");
+            }
+        }
+
+        protected virtual void DisableAllButtons()
         {
             foreach (Button button in Options)
             {
@@ -108,12 +139,29 @@ namespace NewWordLearner.Views
         protected override TabItem OriginalTab { get; }
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
 
+        private ReactiveCommand<Unit, Unit> _playSound = default;
+        public ReactiveCommand<Unit, Unit> PlaySound
+        {
+            get => _playSound;
+            protected set =>  this.RaiseAndSetIfChanged(ref _playSound, value);
+        }
+        
         private MainWindowViewModel _data;
 
-        public LearningTab(MainWindowViewModel dataModel, Window parent)
+        public LearningTab(MainWindowViewModel dataModel, LearnWindow parent)
         {
             _data = dataModel;
             OriginalTab = parent.FindControl<TabItem>("Straightforward");
+            
+            // Cancel = ReactiveCommand.Create(async () =>
+            // {
+            //     ImagePath = new Bitmap("./Images/2D-Roguelike.jpg");
+            // });
+        }
+
+        protected void OnPlaySound(Word selected)
+        {
+            _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord, _data.Project.TargetLanguage.Code));
         }
 
         protected override void OnUpdateLearnTab()
@@ -165,7 +213,12 @@ namespace NewWordLearner.Views
                 rightButton.Click += (sender, args) => OnRightWord(selected);
                 
                 Word = selected.ForeignWord;
-                
+                ApplyImage(_data.Application.ImageController.GetResource(selected.ForeignWord));
+                if (Muted)
+                {
+                    OnPlaySound(selected);
+                }
+
                 Options.Clear();
                 Options
                     .AddRange
@@ -193,6 +246,11 @@ namespace NewWordLearner.Views
                 {
                     OnCancel(selected);
                 });
+                
+                PlaySound = ReactiveCommand.Create(() =>
+                {
+                    OnPlaySound(selected);
+                });
             }
 
             SelectNextWord();
@@ -211,12 +269,17 @@ namespace NewWordLearner.Views
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
         
         private MainWindowViewModel _data;
-        public ReverseLearningTab(MainWindowViewModel dataModel, Window parent)
+        public ReverseLearningTab(MainWindowViewModel dataModel, LearnWindow parent)
         {
             _data = dataModel;
             OriginalTab = parent.FindControl<TabItem>("Reverse");
         }
 
+        protected void PlaySound(Word selected)
+        {
+            _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord, _data.Project.TargetLanguage.Code));
+        }
+        
         protected override void OnUpdateLearnTab()
         {
             async void OnRightWord(Word word)
@@ -224,6 +287,10 @@ namespace NewWordLearner.Views
                 DisableAllButtons();
                 Word = $"You are right {word.Translate} is {word.ForeignWord}";
                 word.IncreaseLearningRate();
+                if (Muted)
+                {
+                    PlaySound(word);
+                }
                 // _data.Application.SaveProject(_data.Project);
                 await Task.Delay(3000);
                 _data.Project.UpdateRoullete();
@@ -266,6 +333,7 @@ namespace NewWordLearner.Views
                 rightButton.Click += (sender, args) => OnRightWord(selected);
                 
                 Word = selected.Translate;
+                ApplyImage(_data.Application.ImageController.GetResource(selected.ForeignWord));
                 
                 Options.Clear();
                 Options
@@ -311,10 +379,23 @@ namespace NewWordLearner.Views
         protected override TabItem OriginalTab { get; }
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
         private MainWindowViewModel _data;
-        public WordConstructTab(MainWindowViewModel dataModel, Window parent)
+        private Action<Avalonia.Input.Key> _keyboardInput;
+        public WordConstructTab(MainWindowViewModel dataModel, LearnWindow parent)
         {
             _data = dataModel;
             OriginalTab = parent.FindControl<TabItem>("Construct");
+            parent.OnButtonUp += key => _keyboardInput?.Invoke(key);
+        }
+        
+        protected void PlaySound(Word selected)
+        {
+            _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord, _data.Project.TargetLanguage.Code));
+        }
+
+        protected override void DisableAllButtons()
+        {
+            _keyboardInput = null;
+            base.DisableAllButtons();
         }
 
         protected override void OnUpdateLearnTab()
@@ -348,6 +429,10 @@ namespace NewWordLearner.Views
                 DisableAllButtons();
                 Word = $"You are right {word.Translate} is {word.ForeignWord}";
                 word.IncreaseLearningRate();
+                if (Muted)
+                {
+                    PlaySound(word);
+                }
                 // _data.Application.SaveProject(_data.Project);
                 await Task.Delay(3000);
                 _data.Project.UpdateRoullete();
@@ -360,6 +445,7 @@ namespace NewWordLearner.Views
                 string preposition = $"{selected.Translate} is ";
                 string wordSample = selected.ForeignWord.Trim();
                 Word = preposition;
+                ApplyImage(_data.Application.ImageController.GetResource(selected.ForeignWord));
                 int index = 0;
 
                 void OnNext(char character, Button button)
@@ -398,6 +484,22 @@ namespace NewWordLearner.Views
                             })
                             .Shuffle()
                     );
+
+                _keyboardInput = keyboardKey =>
+                {
+                    Regex _regex = new Regex($"(?i:{keyboardKey})");
+                    Button _button = Options
+                        .Where(button => button.Content != null)
+                        .Where(button => _regex.IsMatch(button.Content.ToString()))
+                        .FirstOrDefault();
+
+                    if (_button != null)
+                    {
+                        Console.WriteLine($"find button with text {_button.Content}");
+                    }
+
+                    OnNext(_button.Content.ToString().Trim()[0], _button);
+                };
 
                 Cancel = ReactiveCommand.Create(async () =>
                 {
@@ -440,8 +542,8 @@ namespace NewWordLearner.Views
         }
 
         private MainWindowViewModel _data;
-        
-        public WordControlTab(MainWindowViewModel dataModel, Window parent)
+
+        public WordControlTab(MainWindowViewModel dataModel, LearnWindow parent)
         {
             _data = dataModel;
             _original = parent.FindControl<TabItem>("WordsControl");

@@ -34,7 +34,7 @@ namespace NewWordLearner.Views
             yield return WordControlTab;
         }
 
-        public MainWindowViewModel(Window parent)
+        public MainWindowViewModel(LearnWindow parent)
         {
             Application = (App)Avalonia.Application.Current;
             
@@ -57,6 +57,9 @@ namespace NewWordLearner.Views
         private MainWindowViewModel _commonDataModel;
         private TaskCompletionSource<bool> _hiddenLoading = new TaskCompletionSource<bool>();
         public Task LoadingTask => _hiddenLoading.Task;
+
+        public Action<Key> OnButtonUp;
+        public Action<Key> OnButtonDown;
         
         public LearnWindow()
         {
@@ -73,21 +76,6 @@ namespace NewWordLearner.Views
         private async void Init()
         {
             _commonDataModel.Title = _commonDataModel.Application.Project.ToString();
-
-            
-
-            // roullete = new Roullete<Word>(project.words, (w) => w.learningRate);                //создание рандомайзера на основе весов
-            //
-            // learnings[0] = new StraightLearning(roullete, project, straightforward, panel1, word1, cancel1);
-            // learnings[1] = new ReverseLearning(roullete, project, reverse, panel2, word2, cancel2);
-            // learnings[2] = new WordConstruct(roullete, project, contruct, panel3, word3, cancel3);
-            //
-            // for (int i = 0; i < learnings.Length; i++) {
-            //     learnings[i].Update();
-            //     tabs.Add(learnings[i].tab, learnings[i]);
-            // }
-            //
-            // Size = App.FONT_SIZE;
         }
 
         protected override async void OnClosed(EventArgs e)
@@ -115,6 +103,18 @@ namespace NewWordLearner.Views
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            OnButtonDown?.Invoke(e.Key);
+            e.Handled = true;
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            OnButtonUp?.Invoke(e.Key);
+            e.Handled = true;
         }
     }
 }

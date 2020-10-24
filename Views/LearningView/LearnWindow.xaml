@@ -5,7 +5,8 @@
          mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
          Width="500" Height="450"
          x:Class="NewWordLearner.Views.LearnWindow"
-         Title="{Binding Title}">
+         Title="{Binding Title}"
+         >
     
     <Window.Styles>
 
@@ -53,17 +54,25 @@
             <ContentControl DataContext="{Binding LearningTab}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="356*"/>
                         <ColumnDefinition Width="43*"/>
-                        <ColumnDefinition Width="92"/>
+                        <ColumnDefinition Width="100"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="{Binding Word}" Name="word1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                    <TextBlock Text="{Binding Word}" Grid.ColumnSpan="2" TextWrapping="Wrap" Name="word1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
                     
-                    <ItemsControl Grid.Row="1" Items="{Binding Options}">
+                    <StackPanel>
+                        <Button Command="{Binding PlaySound}">Sound</Button>
+                        <ToggleButton IsChecked="{Binding Muted}" ToolTip.Tip="stop audio">
+                            Auto Play
+                        </ToggleButton>
+                    </StackPanel>
+                    
+                    <ItemsControl Grid.ColumnSpan="2" Grid.Row="1" Items="{Binding Options}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -71,8 +80,8 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                     
-                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="2">Cancel</Button>
-                    <Image Name="image1" Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="1"/>
+                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="3">Cancel</Button>
+                    <Image Source="{Binding ImagePath}" Name="image1" Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="2"/>
                 </Grid>
             </ContentControl>
         </TabItem>
@@ -81,18 +90,25 @@
             <ContentControl DataContext="{Binding ReverseLearningTab}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="356*"/>
                         <ColumnDefinition Width="43*"/>
-                        <ColumnDefinition Width="92"/>
+                        <ColumnDefinition Width="100"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
-                    <TextBlock Text="{Binding Word}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                    <TextBlock Text="{Binding Word}" Grid.ColumnSpan="2" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
                     
-                    <ItemsControl Grid.Row="1" Items="{Binding Options}">
+                    <StackPanel>
+                        <ToggleButton IsChecked="{Binding Muted}" ToolTip.Tip="stop audio">
+                            Auto Play
+                        </ToggleButton>
+                    </StackPanel>
+                    
+                    <ItemsControl Grid.ColumnSpan="2" Grid.Row="1" Items="{Binding Options}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -100,8 +116,8 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                     
-                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="2">Cancel</Button>
-                    <Image Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="1"/>
+                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="3">Cancel</Button>
+                    <Image Source="{Binding ImagePath}" Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="2"/>
                 </Grid>
             </ContentControl>
         </TabItem>
@@ -110,18 +126,25 @@
             <ContentControl DataContext="{Binding WordConstructTab}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
                         <ColumnDefinition Width="356*"/>
                         <ColumnDefinition Width="43*"/>
-                        <ColumnDefinition Width="92"/>
+                        <ColumnDefinition Width="100"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
-                    <TextBlock Text="{Binding Word}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                    <TextBlock Text="{Binding Word}" Grid.ColumnSpan="2" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
                     
-                    <ItemsControl Grid.Row="1" Items="{Binding Options}">
+                    <StackPanel>
+                        <ToggleButton IsChecked="{Binding Muted}" ToolTip.Tip="stop audio">
+                            Auto Play
+                        </ToggleButton>
+                    </StackPanel>
+                    
+                    <ItemsControl Grid.ColumnSpan="2" Grid.Row="1" Items="{Binding Options}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -130,8 +153,8 @@
                     </ItemsControl>
                     
                     
-                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="2">Cancel</Button>
-                    <Image Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="1"/>
+                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="3">Cancel</Button>
+                    <Image Source="{Binding ImagePath}" Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="2"/>
                 </Grid>
             </ContentControl>
         </TabItem>
@@ -151,17 +174,12 @@
                         <RowDefinition Height="60"/>
                     </Grid.RowDefinitions>
                 
-                    <ScrollViewer Grid.Row="1" Grid.ColumnSpan="3">
-                        <ListBox Items="{Binding HoleWords}">
+                    <!-- <ScrollViewer Grid.Row="1" Grid.ColumnSpan="3"> -->
+                        <ListBox Grid.Row="1" Grid.ColumnSpan="3" Items="{Binding HoleWords}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="White" CornerRadius="4" Padding="6">
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding}"/>
-                                        <!-- <Grid ColumnDefinitions="2*,20,1*" RowDefinitions="20"> -->
-                                        <!--     <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding C1}"/> -->
-                                        <!--     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding C2}"/> -->
-                                        <!--     <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding C3}"/> -->
-                                        <!-- </Grid> -->
+                                        <TextBlock Text="{Binding}"/>
                                     </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -180,7 +198,7 @@
                         <!--     </ListView.View> -->
                         <!-- </ListView> -->
 
-                    </ScrollViewer>
+                    <!-- </ScrollViewer> -->
                     
                     <Button Command="{Binding AddWord}" Content="Add" Grid.Column="2" Margin="25,10,25,10" Grid.Row="2" />
                     <TextBlock Text="Word" Grid.Row="2" Margin="10,8,10,11" FontSize="14" Height="28"/>

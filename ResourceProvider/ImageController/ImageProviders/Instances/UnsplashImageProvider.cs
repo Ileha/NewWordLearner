@@ -8,6 +8,18 @@ using Avalonia.Media.Imaging;
 
 namespace NewWordLearner.ImageController.ImageProviders.Instances
 {
+    #region Exceptions
+
+    public class UnsplashKeyNotFound : IImageProviderExceptions
+    {
+        public UnsplashKeyNotFound() : base($"Unsplash API key not found")
+        {
+            
+        }
+    }
+
+    #endregion
+    
     public class UnsplashImageProvider : IImageProvider
     {
         [Serializable]
@@ -33,10 +45,21 @@ namespace NewWordLearner.ImageController.ImageProviders.Instances
 
         public static readonly DataContractJsonSerializer JsonFormatter = new DataContractJsonSerializer(typeof(ImageApiData));
         public const string URL = "https://api.unsplash.com/search/photos?query={0}&client_id={1}&per_page={2}";
-        public const string Key = "";
-        
+        public const string CONFIG_KEY = "UnsplashAPIKey";
+        private string Key;
+
+        public UnsplashImageProvider()
+        {
+            Key = App.Instance.GetConfigValue(CONFIG_KEY);
+        }
+
         protected override async Task<Stream> GetDataStream(string word)
         {
+            if (string.IsNullOrEmpty(Key))
+            {
+                throw new UnsplashKeyNotFound();
+            }
+
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(String.Format(URL, word, Key, 1));
             HttpWebResponse response = (await request.GetResponseAsync()) as HttpWebResponse;
             string requestURL;

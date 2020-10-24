@@ -28,6 +28,7 @@ namespace NewWordLearner
         public const string ProjectsDataPath = "./data";
         public const string ImageStorePath = "./Images";
         public const string SoundStorePath = "./Sounds";
+        public const string ProjectConfig = "./config.xml";
         
         public Project Project { get; private set; }
         public ImageController.ImageController ImageController { get; private set; }
@@ -41,10 +42,68 @@ namespace NewWordLearner
             }
         }
 
-        // public KeyboardController KeyboardController { get; private set; }
-
         private Dictionary<string, Language> _languages = new Dictionary<string, Language>();
         private Regex _projectsFiles = new Regex($"(?<name>[^/]+){ProjectExtention}$");
+
+        #region Config
+
+        private Dictionary<string, string> _config = new Dictionary<string, string>();
+
+        public string GetConfigValue(string name)
+        {
+            if (_config.TryGetValue(name, out string _res))
+            {
+                return _res;
+            }
+
+            return null;
+        }
+
+        private void LoadConfig()
+        {
+            XDocument res = null;
+            try 
+            {
+                res = XDocument.Load(ProjectConfig);
+                foreach (var node in res.Root.Elements())
+                {
+                    _config.Add(node.Name.LocalName, node.Value);
+                }
+            }
+            catch (Exception err) 
+            {
+                res = new XDocument();
+                res.Save(ProjectConfig);
+            }
+        }
+
+        #endregion
+
+        #region Singleton
+
+        private static App instance;
+
+        public static App Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+        #endregion
+
+        public App()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }
+            else
+            {
+                throw new Exception("you can't create some instances of App");
+            }
+        }
 
         public override void Initialize()
         {
@@ -53,7 +112,7 @@ namespace NewWordLearner
         
         public override void OnFrameworkInitializationCompleted()
         {
-            // KeyboardController = new KeyboardController();
+            LoadConfig();
             
             if (!Directory.Exists(ProjectsDataPath)) 
             {
@@ -75,7 +134,7 @@ namespace NewWordLearner
             
             XDocument xLang = LoadLanguages();
 
-            foreach (XElement element in xLang.Root.Elements()) 
+            foreach (XElement element in xLang.Root.Elements())
             {
                 Language add = new Language(
                     element.Value.ToString(),

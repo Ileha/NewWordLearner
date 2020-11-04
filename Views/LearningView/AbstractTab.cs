@@ -161,7 +161,15 @@ namespace NewWordLearner.Views
 
         protected void OnPlaySound(Word selected)
         {
-            _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord, _data.Project.TargetLanguage.Code));
+            try
+            {
+                _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord,
+                    _data.Project.TargetLanguage.Code));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         protected override void OnUpdateLearnTab()
@@ -277,7 +285,15 @@ namespace NewWordLearner.Views
 
         protected void PlaySound(Word selected)
         {
-            _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord, _data.Project.TargetLanguage.Code));
+            try
+            {
+                _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord,
+                    _data.Project.TargetLanguage.Code));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
         
         protected override void OnUpdateLearnTab()
@@ -389,7 +405,15 @@ namespace NewWordLearner.Views
         
         protected void PlaySound(Word selected)
         {
-            _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord, _data.Project.TargetLanguage.Code));
+            try
+            {
+                _data.Application.SoundsController.PlaySound(new WordSoundKey(selected.ForeignWord,
+                    _data.Project.TargetLanguage.Code));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         protected override void DisableAllButtons()

@@ -50,5 +50,6 @@ namespace NewWordLearner.System
                 yield return data[i];
             }
         }
+
     }
 }

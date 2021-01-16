@@ -12,6 +12,8 @@ using NewWordLearner.ResourceProvider.SoundsController;
 using NewWordLearner.System;
 using NewWordLearner.Views.official;
 using ReactiveUI;
+using System.Collections.Generic;
+using Avalonia.Input;
 
 namespace NewWordLearner.Views
 {
@@ -50,9 +52,7 @@ namespace NewWordLearner.Views
             get => _cancel;
             protected set =>  this.RaiseAndSetIfChanged(ref _cancel, value);
         }
-        
-        
-        
+
         private bool _muted = true;
         public bool Muted
         {
@@ -395,12 +395,13 @@ namespace NewWordLearner.Views
         protected override TabItem OriginalTab { get; }
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
         private MainWindowViewModel _data;
-        private Action<Avalonia.Input.Key> _keyboardInput;
+        private Action<KeyEventArgs> _keyboardInput = default;
         public WordConstructTab(MainWindowViewModel dataModel, LearnWindow parent)
         {
             _data = dataModel;
             OriginalTab = parent.FindControl<TabItem>("Construct");
-            parent.OnButtonUp += key => _keyboardInput?.Invoke(key);
+            OriginalTab.KeyUp += (sender, args) => _keyboardInput?.Invoke(args);
+            OriginalTab.KeyDown += (sender, args) => args.Handled = true;
         }
         
         protected void PlaySound(Word selected)
@@ -439,7 +440,7 @@ namespace NewWordLearner.Views
             async void OnWrong(Word rightWord, string data)
             {
                 DisableAllButtons();
-                Word = $"You are wrong {rightWord.Translate} WRITE AS {rightWord.ForeignWord}" +
+                Word = $"You are wrong {rightWord.Translate} WRITE AS:\n{rightWord.ForeignWord}" +
                        $"\nYour instance:\n{data}";
                 rightWord.DropLearningRate();
                 // _data.Application.SaveProject(_data.Project);
@@ -470,61 +471,87 @@ namespace NewWordLearner.Views
                 string wordSample = selected.ForeignWord.Trim();
                 Word = preposition;
                 ApplyImage(_data.Application.ImageController.GetResource(selected.ForeignWord));
-                int index = 0;
 
-                void OnNext(char character, Button button)
-                {
-                    if (character == wordSample[index])
+                Regex _suitForWord = new Regex("^\\w$");
+                
+                IEnumerable<(char _char, int index)> _chars = wordSample
+                    .GetCharsFromString()
+                    .Select((_char, i) => (_char, i))
+                    .Where(_data => _suitForWord.IsMatch(_data._char.ToString()));
+                
+                IEnumerator<(char _char, int index)> _charSequence = _chars
+                    .GetEnumerator();
+
+                Options.Clear();
+
+                Dictionary<Button, char> _dictionaryButton = default;
+                
+                var _temp = _chars
+                    .Select(_data =>
                     {
-                        index++;
-                        Word = $"{preposition}{wordSample.Substring(0, index)}";
-                        Options.Remove(button);
-                        if (index == wordSample.Length)
+                        Button button = new Button()
                         {
-                            OnRightWord(selected);
+                            Content = $" {_data._char} "
+                        };
+                        button.Click += (sender, args) => OnNextCharacter(_data._char, button);
+                        return (button, _data);
+                    })
+                    .Shuffle()
+                    .ToArray();
+
+                _dictionaryButton = _temp.ToDictionary(_data => _data.button, _data=>_data._data._char);
+                
+                void OnNextCharacter(char insttance, Button button = default)
+                {
+                    if (button == default)
+                    {
+                        Regex _regex = new Regex($"(?i:{insttance})");
+                        button = Options
+                            .Where(button => _dictionaryButton.TryGetValue(button, out var content) && _regex.IsMatch(content.ToString()))
+                            .FirstOrDefault();
+                    }
+
+                    if (_charSequence.MoveNext())
+                    {
+                        if (button != default && _dictionaryButton.TryGetValue(button, out var content) && content == _charSequence.Current._char)
+                        {
+                            Word = $"{preposition}{wordSample.Substring(0, _charSequence.Current.index+1)}";
+                            Options.Remove(button);
+                            if (_charSequence.Current.index >= wordSample.Length-1)
+                            {
+                                OnRightWord(selected);
+                            }
+                        }
+                        else
+                        {
+                            string _word = $"{wordSample.Substring(0, _charSequence.Current.index).Trim()}{insttance}";
+                            Word = $"{preposition}{_word}";
+                            OnWrong(selected, _word);
                         }
                     }
                     else
                     {
-                        Word = $"{preposition}{wordSample.Substring(0, index)}{character}";
-                        OnWrong(selected, Word);
+                        OnRightWord(selected);
                     }
                 }
 
-                Options.Clear();
-                Options
-                    .AddRange
-                    (
-                        wordSample
-                            .GetCharsFromString()
-                            .Select((character, i) =>
-                            {
-                                Button button = new Button()
-                                {
-                                    Content = $" {character} "
-                                };
-                                button.Click += (sender, args) => OnNext(character, button);
-                                return button;
-                            })
-                            .Shuffle()
-                    );
+                Options.AddRange
+                (
+                    _temp
+                        .Select(_data => _data.button)
+                );
 
-                _keyboardInput = keyboardKey =>
+                _keyboardInput = args =>
                 {
-                    Regex _regex = new Regex($"(?i:{keyboardKey})");
-                    Button _button = Options
-                        .Where(button => button.Content != null)
-                        .Where(button => _regex.IsMatch(button.Content.ToString()))
-                        .FirstOrDefault();
-
-                    if (_button != null)
+                    if (!_suitForWord.IsMatch(args.Key.ToString()))
                     {
-                        Console.WriteLine($"find button with text {_button.Content}");
+                        return;
                     }
-
-                    OnNext(_button.Content.ToString().Trim()[0], _button);
+                    
+                    args.Handled = true;
+                    OnNextCharacter(args.Key.ToString().ToLower()[0]);
                 };
-
+            
                 Cancel = ReactiveCommand.Create(async () =>
                 {
                     OnCancel(selected);

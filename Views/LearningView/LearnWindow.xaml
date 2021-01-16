@@ -80,7 +80,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                     
-                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="3">Cancel</Button>
+                    <Button Command="{Binding Cancel}" Height="35" Margin="10" Grid.Row="1" Grid.Column="3" Content="Cancel"></Button>
                     <Image Source="{Binding ImagePath}" Name="image1" Grid.ColumnSpan="2" Margin="10,35,10,35" Grid.Column="2"/>
                 </Grid>
             </ContentControl>

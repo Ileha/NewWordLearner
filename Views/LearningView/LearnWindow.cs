@@ -58,8 +58,8 @@ namespace NewWordLearner.Views
         private TaskCompletionSource<bool> _hiddenLoading = new TaskCompletionSource<bool>();
         public Task LoadingTask => _hiddenLoading.Task;
 
-        public Action<Key> OnButtonUp;
-        public Action<Key> OnButtonDown;
+        // public Action<Key> OnButtonUp;
+        // public Action<Key> OnButtonDown;
         
         public LearnWindow()
         {
@@ -105,16 +105,16 @@ namespace NewWordLearner.Views
             AvaloniaXamlLoader.Load(this);
         }
 
-        protected override void OnKeyDown(KeyEventArgs e)
-        {
-            OnButtonDown?.Invoke(e.Key);
-            e.Handled = true;
-        }
-
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            OnButtonUp?.Invoke(e.Key);
-            e.Handled = true;
-        }
+        // protected override void OnKeyDown(KeyEventArgs e)
+        // {
+        //     OnButtonDown?.Invoke(e.Key);
+        //     e.Handled = true;
+        // }
+        //
+        // protected override void OnKeyUp(KeyEventArgs e)
+        // {
+        //     OnButtonUp?.Invoke(e.Key);
+        //     e.Handled = true;
+        // }
     }
 }

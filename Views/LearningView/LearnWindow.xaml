@@ -200,9 +200,9 @@
 
                     <!-- </ScrollViewer> -->
                     
-                    <Button Command="{Binding AddWord}" Content="Add" Grid.Column="2" Margin="25,10,25,10" Grid.Row="2" />
+                    <Button IsDefault="True" Command="{Binding AddWord}" Content="Add" Grid.Column="2" Margin="25,10,25,10" Grid.Row="2" />
                     <TextBlock Text="Word" Grid.Row="2" Margin="10,8,10,11" FontSize="14" Height="28"/>
-                    <TextBox Grid.Row="2" TextWrapping="Wrap"  Text="{Binding Word, Mode=TwoWay}" Margin="10,5,10,5" FontSize="14" Grid.Column="1"/>
+                    <TextBox Grid.Row="2" TextWrapping="Wrap" Text="{Binding Word, Mode=TwoWay}" Margin="10,5,10,5" FontSize="14" Grid.Column="1"/>
                 </Grid>
             </ContentControl>
         </TabItem>

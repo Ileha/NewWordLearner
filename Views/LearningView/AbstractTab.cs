@@ -21,12 +21,45 @@ namespace NewWordLearner.Views
 
     public abstract class AbstractTab : ReactiveObject
     {
-        public AbstractTab()
+        protected Action<KeyEventArgs> KeyboardInput = default;
+        protected TabItem OriginalTab { get; private set; }
+        public bool IsClosed { get; private set; } = true;
+
+        public AbstractTab(TabItem tabItem)
+        {
+            OriginalTab = tabItem;
+            OriginalTab.KeyUp += (sender, args) => KeyboardInput?.Invoke(args);
+            OriginalTab.KeyDown += (sender, args) => args.Handled = true;
+        }
+        public void OnOpenTab(TabItem tabItem)
+        {
+            if (tabItem != OriginalTab)
+            {
+                if (!IsClosed)
+                {
+                    Console.WriteLine($"{this} close");
+                    OnCloseTab();
+                    IsClosed = true;
+                }
+                return;
+            }
+
+            if (IsClosed)
+            {
+                Console.WriteLine($"{this} open");
+                OnOpenTab();
+                IsClosed = false;
+            }
+        }
+
+        protected virtual void OnOpenTab()
         {
             
         }
-
-        public abstract void OnOpenTab(TabItem tabItem);
+        protected virtual void OnCloseTab()
+        {
+            
+        }
     }
 
     public abstract class LearnTab : AbstractTab
@@ -70,9 +103,14 @@ namespace NewWordLearner.Views
         #endregion
 
         private int _wordCount = -1;
-        protected abstract TabItem OriginalTab { get; }
+        
         protected abstract int CurrentProjectWordCount { get; }
 
+        public LearnTab(TabItem tabItem) : base(tabItem)
+        {
+            
+        }
+        
         protected async void ApplyImage(Task<IBitmap> imageLoader)
         {
             try
@@ -94,13 +132,9 @@ namespace NewWordLearner.Views
             }
             Cancel = default;
         }
-        
-        public override void OnOpenTab(TabItem tabItem)
-        {
-            if (tabItem != OriginalTab) return;
-            
-            Console.WriteLine($"{this} update");
 
+        protected override void OnOpenTab()
+        {
             if (CurrentProjectWordCount != _wordCount)
             {
                 if (CurrentProjectWordCount >= App.MinWordCount)
@@ -125,7 +159,7 @@ namespace NewWordLearner.Views
         {
             
         }
-
+        
         protected virtual void OnClearLearnTab()
         {
             
@@ -136,7 +170,6 @@ namespace NewWordLearner.Views
 
     public class LearningTab : LearnTab
     {
-        protected override TabItem OriginalTab { get; }
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
 
         private ReactiveCommand<Unit, Unit> _playSound = default;
@@ -148,10 +181,10 @@ namespace NewWordLearner.Views
         
         private MainWindowViewModel _data;
 
-        public LearningTab(MainWindowViewModel dataModel, LearnWindow parent)
+        public LearningTab(MainWindowViewModel dataModel, LearnWindow parent) : base(parent.FindControl<TabItem>("Straightforward"))
         {
             _data = dataModel;
-            OriginalTab = parent.FindControl<TabItem>("Straightforward");
+            // OriginalTab = parent.FindControl<TabItem>("Straightforward");
             
             // Cancel = ReactiveCommand.Create(async () =>
             // {
@@ -273,14 +306,12 @@ namespace NewWordLearner.Views
     }
     public class ReverseLearningTab : LearnTab
     {
-        protected override TabItem OriginalTab { get; }
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
         
         private MainWindowViewModel _data;
-        public ReverseLearningTab(MainWindowViewModel dataModel, LearnWindow parent)
+        public ReverseLearningTab(MainWindowViewModel dataModel, LearnWindow parent) : base(parent.FindControl<TabItem>("Reverse"))
         {
             _data = dataModel;
-            OriginalTab = parent.FindControl<TabItem>("Reverse");
         }
 
         protected void PlaySound(Word selected)
@@ -392,16 +423,11 @@ namespace NewWordLearner.Views
     }
     public class WordConstructTab : LearnTab
     {
-        protected override TabItem OriginalTab { get; }
         protected override int CurrentProjectWordCount => _data.Project.WordCount;
         private MainWindowViewModel _data;
-        private Action<KeyEventArgs> _keyboardInput = default;
-        public WordConstructTab(MainWindowViewModel dataModel, LearnWindow parent)
+        public WordConstructTab(MainWindowViewModel dataModel, LearnWindow parent) : base(parent.FindControl<TabItem>("Construct"))
         {
             _data = dataModel;
-            OriginalTab = parent.FindControl<TabItem>("Construct");
-            OriginalTab.KeyUp += (sender, args) => _keyboardInput?.Invoke(args);
-            OriginalTab.KeyDown += (sender, args) => args.Handled = true;
         }
         
         protected void PlaySound(Word selected)
@@ -419,7 +445,7 @@ namespace NewWordLearner.Views
 
         protected override void DisableAllButtons()
         {
-            _keyboardInput = null;
+            KeyboardInput = null;
             base.DisableAllButtons();
         }
 
@@ -541,7 +567,7 @@ namespace NewWordLearner.Views
                         .Select(_data => _data.button)
                 );
 
-                _keyboardInput = args =>
+                KeyboardInput = args =>
                 {
                     if (!_suitForWord.IsMatch(args.Key.ToString()))
                     {
@@ -570,8 +596,6 @@ namespace NewWordLearner.Views
     }
     public class WordControlTab : AbstractTab
     {
-        private TabItem _original;
-        
         private ObservableCollection<Word> _holeWords = new ObservableCollection<Word>();
         public ObservableCollection<Word> HoleWords
         {
@@ -594,11 +618,10 @@ namespace NewWordLearner.Views
 
         private MainWindowViewModel _data;
 
-        public WordControlTab(MainWindowViewModel dataModel, LearnWindow parent)
+        public WordControlTab(MainWindowViewModel dataModel, LearnWindow parent) : base(parent.FindControl<TabItem>("WordsControl"))
         {
             _data = dataModel;
-            _original = parent.FindControl<TabItem>("WordsControl");
-
+            
             AddWord = ReactiveCommand.Create(async () =>
             {
                 try
@@ -632,14 +655,14 @@ namespace NewWordLearner.Views
             });
         }
 
-        public override void OnOpenTab(TabItem tabItem)
+        protected override void OnOpenTab()
         {
-            if (tabItem != _original) return;
-            
-            Console.WriteLine("WordControlTab update");
-            
-            HoleWords.Clear();
             HoleWords.AddRange(_data.Project.AllWords);
+        }
+
+        protected override void OnCloseTab()
+        {
+            HoleWords.Clear();
         }
     }
 }

@@ -77,7 +77,7 @@ namespace NewWordLearner.ResourceProvider.SoundsController
         {
             using (Stream dataStream = await GetDataStream(word))
             {
-                using (FileStream fs = new FileStream(word.ToPath(), FileMode.OpenOrCreate))
+                using (FileStream fs = new FileStream(word.ToPath(), FileMode.Create))
                 {
                     await dataStream.CopyToAsync(fs);
                 }
@@ -118,27 +118,13 @@ namespace NewWordLearner.ResourceProvider.SoundsController
 
     public class SoundsController : CacheResourceProvider<CustomMediaPlayer, WordSoundKey>
     {
-        // private AudioEngine _engine;
-        // private WaveOutEvent _outputDevice;
-        
         public SoundsController(string path, ISoundsProvider provider, int amount = 20) : base(path, provider, amount)
         {
-            // _outputDevice = new WaveOutEvent();
             
-            // _engine = AudioEngine.CreateDefault();
-            // provider.SetEngine(_engine);
         }
 
         public async void PlaySound(WordSoundKey wordSoundKey)
         {
-            // SoundStream _data = await GetResource(wordSoundKey);
-            // _data.Play();
-            
-            // AudioFileReader _data = await GetResource(wordSoundKey);
-            // _outputDevice.Stop();
-            // _outputDevice.Init(_data);
-            // _outputDevice.Play();
-
             CustomMediaPlayer player = await GetResource(wordSoundKey);
             player.Stop();
             player.Position = TimeSpan.Zero;

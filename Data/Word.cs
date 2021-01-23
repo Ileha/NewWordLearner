@@ -4,19 +4,24 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace NewWordLearner.Data
 {
     [Serializable]
     public class Word
     {
+        [JsonProperty("Word")]
         public string ForeignWord;
+        [JsonProperty("Value")]
         public string Translate;
-        [DataMember]
-        private float _learningRateShadow = 0;
 
+        [JsonProperty("Rate")]
+        private float _learningRateShadow = 0;
+        [JsonIgnore]
         public float LearningRate => 1.0f / (_learningRateShadow + 1.0f);
 
+        [JsonConstructor]
         public Word() 
         {
         

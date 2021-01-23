@@ -9,7 +9,7 @@ using Avalonia.Media.Imaging;
 using DynamicData;
 using NewWordLearner.Data;
 using NewWordLearner.ResourceProvider.SoundsController;
-using NewWordLearner.System;
+using NewWordLearner.Extentions;
 using NewWordLearner.Views.official;
 using ReactiveUI;
 using System.Collections.Generic;

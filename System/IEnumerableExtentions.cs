@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NewWordLearner.System
+namespace NewWordLearner.Extentions
 {
     public static class IEnumerableExtentions
     {

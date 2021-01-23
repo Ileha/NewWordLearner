@@ -5,7 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using NewWordLearner.System;
+using NewWordLearner.Extentions;
 
 namespace NewWordLearner.ImageController.ImageProviders.Instances
 {

@@ -10,11 +10,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Newtonsoft.Json;
 using NewWordLearner.Data;
 using NewWordLearner.ImageController.ImageProviders;
 using NewWordLearner.ImageController.ImageProviders.Instances;
 using NewWordLearner.ResourceProvider.SoundsController;
-using NewWordLearner.System;
+using NewWordLearner.Extentions;
 using NewWordLearner.Views;
 
 namespace NewWordLearner
@@ -23,31 +24,28 @@ namespace NewWordLearner
     {
         public const int Complicate = 7;
         public const int MinWordCount = 5;
-        public const String LanguagesPath = "./languages.xml";
-        public const String ProjectExtention = ".dat";
+        
+        public const string LanguagesPathJSON = "./languages.json";
+        public const string ProjectConfigJSON = "./config.json";
+        public const string ProjectExtentionJSON = ".json";
+        
+        // public const string LanguagesPath = "./languages.xml";
         public const string ProjectsDataPath = "./data";
+        
+        // public const string ProjectExtention = ".dat";
         public const string ImageStorePath = "./Images";
         public const string SoundStorePath = "./Sounds";
-        public const string ProjectConfig = "./config.xml";
+        // public const string ProjectConfig = "./config.xml";
         
         public Project Project { get; private set; }
         public ImageController.ImageController ImageController { get; private set; }
         public SoundsController SoundsController { get; private set; }
 
-        public IEnumerable<Language> AllLanguages 
-        { 
-            get 
-            {
-                return _languages.Values;
-            }
-        }
-
-        private Dictionary<string, Language> _languages = new Dictionary<string, Language>();
-        private Regex _projectsFiles = new Regex($"(?<name>[^/]+){ProjectExtention}$");
+        private Regex _projectsFiles = new Regex($"(?<name>[^/]+){ProjectExtentionJSON}$");
 
         #region Config
 
-        private Dictionary<string, string> _config = new Dictionary<string, string>();
+        private Dictionary<string, string> _config;
 
         public string GetConfigValue(string name)
         {
@@ -61,26 +59,93 @@ namespace NewWordLearner
 
         private void LoadConfig()
         {
-            XDocument res = null;
-            try 
+            try
             {
-                res = XDocument.Load(ProjectConfig);
-                foreach (var node in res.Root.Elements())
+                using (FileStream fs = new FileStream(ProjectConfigJSON, FileMode.Open))
                 {
-                    _config.Add(node.Name.LocalName, node.Value);
+                    using (StreamReader reader = new StreamReader(fs))
+                    {
+                        using (JsonTextReader jsonReader = new JsonTextReader(reader))
+                        {
+                            JsonSerializer ser = new JsonSerializer();
+                            _config = ser.Deserialize<Dictionary<string, string>>(jsonReader);
+                        }
+                    }
                 }
             }
-            catch (Exception err) 
+            catch (Exception e)
             {
-                res = new XDocument(
-                    new XElement("config")
-                );
-                res.Save(ProjectConfig);
+                _config = new Dictionary<string, string>();
+                using (FileStream fs = new FileStream(ProjectConfigJSON, FileMode.Create))
+                {
+                    using (StreamWriter writer = new StreamWriter(fs))
+                    {
+                        using (JsonTextWriter jsonWriter = new JsonTextWriter(writer))
+                        {
+                            JsonSerializer ser = new JsonSerializer();
+                            ser.Serialize(jsonWriter, _config);
+                            jsonWriter.Flush();
+                        }
+                    }
+                }
             }
         }
 
         #endregion
 
+        #region Languages
+
+        public IEnumerable<Language> AllLanguages 
+        { 
+            get 
+            {
+                return _languages.Values;
+            }
+        }
+
+        private Dictionary<string, Language> _languages = new Dictionary<string, Language>();
+
+        // private Language GetLanguageByTitle(string title) => _languages[title];
+        
+        private void LoadLanguages() 
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(LanguagesPathJSON, FileMode.Open))
+                {
+                    using (StreamReader reader = new StreamReader(fs))
+                    {
+                        using (JsonTextReader jsonReader = new JsonTextReader(reader))
+                        {
+                            JsonSerializer ser = new JsonSerializer();
+                            var _data = ser.Deserialize<Language[]>(jsonReader);
+                            _languages = _data.ToDictionary(_lang => _lang.LanguageTitle);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _languages = new Dictionary<string, Language>();
+                var _add = new Language("English", "en");
+                _languages.Add(_add.LanguageTitle, _add);
+                using (FileStream fs = new FileStream(LanguagesPathJSON, FileMode.Create))
+                {
+                    using (StreamWriter writer = new StreamWriter(fs))
+                    {
+                        using (JsonTextWriter jsonWriter = new JsonTextWriter(writer))
+                        {
+                            JsonSerializer ser = new JsonSerializer();
+                            ser.Serialize(jsonWriter, _languages.Values);
+                            jsonWriter.Flush();
+                        }
+                    }
+                }
+            }
+        }
+        
+        #endregion
+        
         #region Singleton
 
         private static App instance;
@@ -112,7 +177,7 @@ namespace NewWordLearner
             AvaloniaXamlLoader.Load(this);
         }
         
-        public override void OnFrameworkInitializationCompleted()
+        public override async void OnFrameworkInitializationCompleted()
         {
             LoadConfig();
             
@@ -134,16 +199,7 @@ namespace NewWordLearner
             ImageController = new ImageController.ImageController(ImageStorePath, new IImageProvider.AgregatorImageProvider(new UnsplashImageProvider(), new GoogleImageProvider()));
             SoundsController = new SoundsController(SoundStorePath, new GoogleSoundProvider());
             
-            XDocument xLang = LoadLanguages();
-
-            foreach (XElement element in xLang.Root.Elements())
-            {
-                Language add = new Language(
-                    element.Value.ToString(),
-                    element.Attribute("code").Value.ToString()
-                );
-                _languages.Add(add.LanguageTitle, add);
-            }
+            LoadLanguages();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
@@ -152,6 +208,56 @@ namespace NewWordLearner
             
             base.OnFrameworkInitializationCompleted();
         }
+
+        // private async Task Move2JSON()
+        // {
+        //     await Task.Run(() =>
+        //     {
+        //         using (FileStream fs =
+        //             new FileStream(
+        //                 ProjectConfigJSON,
+        //                 FileMode.Truncate))
+        //         {
+        //             using (StreamWriter writer = new StreamWriter(fs))
+        //             {
+        //                 using (JsonTextWriter jsonWriter = new JsonTextWriter(writer))
+        //                 {
+        //                     JsonSerializer ser = new JsonSerializer();
+        //                     ser.Serialize(jsonWriter, _config);
+        //                     jsonWriter.Flush();
+        //                 }
+        //             }
+        //         }
+        //     });
+        //     
+        //     await Task.Run(() =>
+        //     {
+        //         using (FileStream fs =
+        //             new FileStream(
+        //                 LanguagesPathJSON,
+        //                 FileMode.Truncate))
+        //         {
+        //             using (StreamWriter writer = new StreamWriter(fs))
+        //             {
+        //                 using (JsonTextWriter jsonWriter = new JsonTextWriter(writer))
+        //                 {
+        //                     JsonSerializer ser = new JsonSerializer();
+        //                     ser.Serialize(jsonWriter, AllLanguages);
+        //                     jsonWriter.Flush();
+        //                 }
+        //             }
+        //         }
+        //     });
+        //     
+        //     await Task.WhenAll
+        //     (
+        //         (await GetAllProjects()).Select(async _data =>
+        //         {
+        //             await SaveProjectJSON(await LoadProject(_data.puth));
+        //         })
+        //     );
+        //
+        // }
 
         #region SpecialWindows
 
@@ -212,7 +318,7 @@ namespace NewWordLearner
         Dictionary<string, SemaphoreSlim> _pathSemaphores = new Dictionary<string, SemaphoreSlim>();
         public async Task SaveProject(Project project)
         {
-            string path = $"{ProjectsDataPath}/{project.Name}{ProjectExtention}";
+            string path = $"{ProjectsDataPath}/{project.Name}{ProjectExtentionJSON}";
             SemaphoreSlim semaphoreSlim = default;
             if (!_pathSemaphores.TryGetValue(project.Name, out semaphoreSlim))
             {
@@ -251,27 +357,7 @@ namespace NewWordLearner
                     .ToArray();
             });
         }
-        
+
         #endregion
-
-        private XDocument LoadLanguages() 
-        {
-            XDocument res = null;
-            try 
-            {
-                res = XDocument.Load(LanguagesPath);
-            }
-            catch (Exception err) 
-            {
-                res = new XDocument(
-                    new XElement("languages",
-                        new XElement("language", "English", new XAttribute("code", "en"))
-                    )
-                );
-                res.Save(LanguagesPath);
-            }
-
-            return res;
-        }
    }
 }

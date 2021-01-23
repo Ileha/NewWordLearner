@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -24,18 +23,16 @@ namespace NewWordLearner
     {
         public const int Complicate = 7;
         public const int MinWordCount = 5;
-        
-        public const string LanguagesPathJSON = "./languages.json";
+
+        public const string SyncPath = "./Sync";
+        public string LanguagesPathJSON { get; private set; } = $"{SyncPath}/languages.json";
         public const string ProjectConfigJSON = "./config.json";
         public const string ProjectExtentionJSON = ".json";
         
-        // public const string LanguagesPath = "./languages.xml";
-        public const string ProjectsDataPath = "./data";
+        public string ProjectsDataPath { get; private set; } = $"{SyncPath}/data";
         
-        // public const string ProjectExtention = ".dat";
         public const string ImageStorePath = "./Images";
         public const string SoundStorePath = "./Sounds";
-        // public const string ProjectConfig = "./config.xml";
         
         public Project Project { get; private set; }
         public ImageController.ImageController ImageController { get; private set; }
@@ -177,7 +174,7 @@ namespace NewWordLearner
             AvaloniaXamlLoader.Load(this);
         }
         
-        public override async void OnFrameworkInitializationCompleted()
+        public override void OnFrameworkInitializationCompleted()
         {
             LoadConfig();
             

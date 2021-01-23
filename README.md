@@ -6,13 +6,12 @@ This is a software to learn foreign languages.
 
 ### config file
 This file contains some specific variables for "New word learner"  
-./config.xml structure:  
+./config.json structure:  
 
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<config>
-    <UnsplashAPIKey>your key here</UnsplashAPIKey>
-</config>
+```json
+{
+  "UnsplashAPIKey": "9b7218c670967d7b67b4de8fd3c0fb454a2b8e513c9e565b8d125ddb250faeee"
+}
 ```
 
 More information about Unsplash you could get [here](https://unsplash.com)
@@ -21,21 +20,33 @@ program will work with google without UnsplashAPIKey.
 
 ### languages file
 This file contains all available language in program. Also you could add yours.  
-languages.xml structure:
+languages.json structure:
 
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<languages>
-    <language code="en">English</language>
-    <language code="ru">Russian</language>
-    <language code="de">German</language>
-    <!-- 
-        your languages 
+```json
+[
+  {
+    "LanguageTitle": "English",
+    "Code": "en"
+  },
+  {
+    "LanguageTitle": "Russian",
+    "Code": "ru"
+  },
+  {
+    "LanguageTitle": "German",
+    "Code": "de"
+  },
+  {
+    "LanguageTitle": "Czech",
+    "Code": "cs"
+  }
+  /*z
+  your languages 
             where: 
                 code is ISO 639-1 code,
                 value is language's title
-    -->
-</languages>
+  */
+]
 ```
 Codes of languages you could get here [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)
 
